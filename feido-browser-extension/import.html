@@ -1,0 +1,127 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>FeIDo — Import Encrypted Backup</title>
+  <style>
+    :root{
+      --bg:#f5f7fb;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --accent:#2563eb;
+      --accent-focus:#1d4ed8;
+      --border:#e2e8f0;
+      --shadow:0 18px 32px -18px rgba(15,23,42,0.35);
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family:Inter,Segoe UI,Arial,Helvetica,sans-serif;
+      margin:0;
+      min-height:100vh;
+      background:var(--bg);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:36px 20px;
+      color:#0f172a;
+    }
+    .container{width:100%;max-width:520px}
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:28px 32px;
+      box-shadow:var(--shadow);
+    }
+    h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-0.01em}
+    p{margin:12px 0 24px;font-size:15px;line-height:1.6;color:var(--muted)}
+    .file-picker{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-bottom:20px}
+    input[type=file]{display:none}
+    .btn{display:inline-flex;align-items:center;justify-content:center;border:none;border-radius:10px;padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer;transition:transform .12s ease, box-shadow .12s ease}
+    .btn.primary{background:var(--accent);color:#fff;box-shadow:0 8px 16px -10px rgba(37,99,235,0.7)}
+    .btn.primary:hover{background:var(--accent-focus);transform:translateY(-1px)}
+    .btn.ghost{background:#f8fafc;color:var(--accent);border:1px solid var(--border)}
+    .btn.ghost:hover{background:#eef2ff;border-color:#cbd5f5}
+    .file-name{font-size:14px;color:var(--muted)}
+    .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+    #importControls{
+      display:none;
+      margin-top:24px;
+      padding:18px 20px;
+      border:1px solid #dbeafe;
+      border-radius:14px;
+      background:#eff6ff;
+    }
+  .inline-error{display:none;margin:0 0 14px;padding:10px 12px;border-radius:10px;background:#fee2e2;color:#b91c1c;font-size:13px;font-weight:500;box-shadow:0 0 0 1px rgba(248,113,113,0.35)}
+  .inline-error.visible{display:block}
+  .inline-success{display:none;margin-top:18px;padding:12px 14px;border-radius:12px;background:#dcfce7;color:#065f46;font-size:13px;font-weight:600;box-shadow:0 0 0 1px rgba(16,185,129,0.35)}
+  .inline-success.visible{display:block}
+  .merge-option{display:none;margin-top:16px;padding:12px 14px;border-radius:12px;border:1px solid #bae6fd;background:#f0f9ff;color:#075985;gap:6px}
+  .merge-option.visible{display:flex;flex-direction:column}
+  .merge-option label{display:flex;align-items:flex-start;gap:10px;font-size:13px;font-weight:600;color:#0c4a6e;cursor:pointer}
+  .merge-option input[type=checkbox]{margin-top:3px;transform:scale(1.1)}
+  .merge-option .merge-hint{font-size:12px;color:#0369a1;line-height:1.5}
+    #importControls label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:#1e3a8a}
+    #importControls input[type=password],
+    #importControls input[type=text]{width:100%;padding:10px 42px 10px 12px;border:1px solid #cbd5f5;border-radius:8px;font-size:14px;transition:border-color .15s ease, box-shadow .15s ease}
+    #importControls input:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 2px rgba(37,99,235,0.18)}
+    .password-field{position:relative;display:flex;align-items:center}
+    .toggle-visibility{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:transparent;border:none;padding:6px;border-radius:999px;cursor:pointer;color:#1e3a8a;display:flex;align-items:center;justify-content:center;transition:background .12s ease, color .12s ease}
+    .toggle-visibility:hover{background:rgba(37,99,235,0.12);color:#1d4ed8}
+    .toggle-visibility:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
+    .toggle-visibility svg{width:18px;height:18px}
+    .toggle-visibility .icon-hide{display:none}
+    .toggle-visibility[aria-pressed="true"] .icon-hide{display:block}
+    .toggle-visibility[aria-pressed="true"] .icon-show{display:none}
+    .toggle-visibility[aria-pressed="true"]{color:#1d4ed8}
+    #importControls .inline-actions{margin-top:14px;display:flex;justify-content:flex-end;gap:10px}
+    @media (max-width:520px){
+      body{padding:24px 16px}
+      .card{padding:24px}
+      h1{font-size:20px}
+      .file-picker{gap:10px}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>FeIDo — Import encrypted backup</h1>
+      <p>Select the encrypted JSON package you previously exported. Importing will replace any stored backup on this device.</p>
+      <div class="file-picker">
+        <input id="file" type="file" accept="application/json" />
+        <label for="file" class="btn primary">Choose JSON file</label>
+        <span id="fileName" class="file-name">No file selected.</span>
+      </div>
+      <div class="actions">
+        <button id="close" class="btn ghost">Close</button>
+      </div>
+  <div id="importSuccess" class="inline-success" role="status" aria-live="polite" aria-hidden="true"></div>
+      <!-- Inline passphrase controls (shown after selecting a combined package) -->
+      <div id="importControls">
+        <div id="importError" class="inline-error" role="alert"></div>
+        <label for="importPassInline">Enter passphrase to decrypt credential records</label>
+        <div class="password-field">
+          <input id="importPassInline" type="password" autocomplete="current-password" placeholder="Enter export passphrase" />
+          <button id="importPassToggle" class="toggle-visibility" type="button" aria-label="Show passphrase" aria-pressed="false">
+            <svg class="icon-show" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5c5.23 0 9.32 3.64 10.71 6.37.18.37.18.79 0 1.16C21.32 15.36 17.23 19 12 19s-9.32-3.64-10.71-6.47a1.2 1.2 0 0 1 0-1.16C2.68 8.64 6.77 5 12 5Zm0 2c-3.91 0-7.32 2.75-8.89 5 1.57 2.25 4.98 5 8.89 5s7.32-2.75 8.89-5c-1.57-2.25-4.98-5-8.89-5Zm0 2.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7Zm0 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z" fill="currentColor"></path></svg>
+            <svg class="icon-hide" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3.53 2.47a.75.75 0 0 0-1.06 1.06l2.1 2.1C2.9 7.11 1.68 8.77 1.29 9.53a1.2 1.2 0 0 0 0 1.16C2.68 13.52 6.77 17.16 12 17.16c1.65 0 3.17-.34 4.52-.92l3.95 3.95a.75.75 0 0 0 1.06-1.06l-18-18Zm8.47 13.69c-3.91 0-7.32-2.75-8.89-5 .47-.71 1.17-1.62 2.08-2.46l2.51 2.51a3.5 3.5 0 0 0 4.36 4.36l1.94 1.94c-.63.1-1.28.15-1.99.15Zm-.25-4.99L16.43 16a3.5 3.5 0 0 0-4.68-4.83Zm3.69 1.1 2.21 2.21c.77-.63 1.4-1.32 1.86-1.93-.9-1.28-2.5-2.85-4.48-3.82l1.4 1.4a3.5 3.5 0 0 1-.99 2.14Z" fill="currentColor"></path></svg>
+          </button>
+        </div>
+        <div id="mergeOptionWrap" class="merge-option" role="group" aria-labelledby="mergeOptionLabel">
+          <label id="mergeOptionLabel" for="mergeOption">
+            <input id="mergeOption" type="checkbox" />
+            <span>Merge credentials with existing records when the device secret matches.</span>
+          </label>
+          <div class="merge-hint">Keeps your current credentials and adds or updates entries from the backup when they have a higher counter.</div>
+        </div>
+        <div class="inline-actions">
+          <button id="importCancelInline" class="btn ghost">Cancel</button>
+          <button id="importOkInline" class="btn primary">Decrypt & import</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="import.js"></script>
+</body>
+</html>

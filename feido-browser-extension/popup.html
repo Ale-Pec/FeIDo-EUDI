@@ -1,0 +1,164 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>FeIDo — Passphrase</title>
+  <style>
+    :root{--bg:#ffffff;--muted:#6b7280;--accent:#2563eb;--border:#e5e7eb}
+  body{font-family:Inter,Arial,Helvetica,sans-serif;background:var(--bg);width:360px;margin:0;padding:14px;color:#111;position:relative}
+    .card{border:1px solid var(--border);border-radius:10px;padding:12px;background:#fafafa;box-shadow:0 2px 6px rgba(16,24,40,0.04)}
+  /* smoother view transition helpers: animate transform + opacity for GPU-accelerated smoothness */
+  .card.inactive{opacity:0;transform:translateY(10px) scale(0.995);pointer-events:none;will-change:transform,opacity}
+  .card.active{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+  .card{transition:transform 260ms cubic-bezier(.2,.9,.2,1), opacity 220ms ease;will-change:transform,opacity}
+  .dimmed{opacity:0.6;transition:opacity 220ms ease}
+
+  /* exportView placed inline; default to no height so it doesn't create empty space when hidden */
+  #exportView{position:relative;box-sizing:border-box;min-height:0;max-width:420px;margin:10px 0}
+  /* active view visible and provides the taller min-height so popup grows only when shown */
+  #exportView.active{display:block;min-height:520px}
+  #exportView.inactive{display:none}
+  /* animate from top for a more natural entrance */
+  .card{transform-origin:top center}
+  /* hide backupCard when inactive to free space */
+  #backupCard.inactive{display:none}
+  /* hide main view when inactive to avoid leaving empty space in layout */
+  #mainView.inactive{display:none}
+    h3{margin:0 0 8px;font-size:16px}
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+    input[type=password]{width:100%;box-sizing:border-box;padding:8px;border:1px solid #ddd;border-radius:6px}
+  .btn{background:var(--accent);color:#fff;border:none;padding:8px 10px;border-radius:6px;cursor:pointer;margin-right:6px}
+  .btn:disabled{opacity:0.45;cursor:not-allowed;filter:saturate(0.6)}
+    .btn.ghost{background:#fff;color:var(--accent);border:1px solid var(--border)}
+    .row{margin-top:10px}
+  #backupCard .row{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+    #status{font-size:13px;margin-top:8px}
+    .badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px;background:#eef2ff;color:#1e3a8a}
+    #log{margin-top:10px;font-size:12px;color:#374151;max-height:140px;overflow:auto;border-top:1px dashed #eee;padding-top:6px}
+    .muted{color:var(--muted);font-size:12px}
+    hr{border:none;border-top:1px solid #eee;margin:12px 0}
+    .tipBox{margin-top:10px;padding:10px;border-radius:8px;background:rgba(37,99,235,0.06);border:1px solid rgba(37,99,235,0.18);font-size:12px;color:#1d4ed8;display:flex;gap:8px;align-items:flex-start}
+    .tipBox strong{font-size:12px;color:#1d4ed8}
+  </style>
+</head>
+<body>
+  <div id="mainView" class="card">
+    <h3>FeIDo</h3>
+    <div class="muted">Device secret protection</div>
+
+    <div id="setArea">
+      <div class="row">
+        <label>Passphrase (use to Unlock / Set)</label>
+        <input id="passphrase" type="password" placeholder="Enter passphrase to unlock" />
+        <label style="margin-top:8px">Confirm passphrase</label>
+        <input id="setPassConfirm" type="password" placeholder="Confirm passphrase" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #ddd;border-radius:6px;margin-top:6px" />
+        <div id="setStrengthBar" style="height:8px;border-radius:6px;margin-top:6px;background:#eee;overflow:hidden">
+          <div id="setStrengthFill" style="height:100%;width:0%;background:linear-gradient(90deg,#f43f5e,#fb923c,#10b981);transition:width 120ms ease"></div>
+        </div>
+        <div id="setHint" class="muted" style="margin-top:6px;font-size:12px">Password requirements: at least 12 characters and must include lowercase, uppercase, digits, and symbols.</div>
+        <div id="setReqs" style="margin-top:8px;font-size:13px">
+          <div class="muted">Requirements:</div>
+          <ul style="list-style:none;padding:6px 10px;margin:6px 0">
+            <li style="display:flex;align-items:center;margin:4px 0"><span class="reqIcon" id="setReqIconLen" style="width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-right:8px;background:#efefef;color:#777;font-weight:700">•</span>At least 12 characters</li>
+            <li style="display:flex;align-items:center;margin:4px 0"><span class="reqIcon" id="setReqIconLower" style="width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-right:8px;background:#efefef;color:#777;font-weight:700">•</span>Contains lowercase (a-z)</li>
+            <li style="display:flex;align-items:center;margin:4px 0"><span class="reqIcon" id="setReqIconUpper" style="width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-right:8px;background:#efefef;color:#777;font-weight:700">•</span>Contains uppercase (A-Z)</li>
+            <li style="display:flex;align-items:center;margin:4px 0"><span class="reqIcon" id="setReqIconDigit" style="width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-right:8px;background:#efefef;color:#777;font-weight:700">•</span>Contains digits (0-9)</li>
+            <li style="display:flex;align-items:center;margin:4px 0"><span class="reqIcon" id="setReqIconSymbol" style="width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-right:8px;background:#efefef;color:#777;font-weight:700">•</span>Contains symbol (e.g. !@#$%)</li>
+            <li style="display:flex;align-items:center;margin:4px 0"><span class="reqIcon" id="setReqIconConfirm" style="width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-right:8px;background:#efefef;color:#777;font-weight:700">•</span>Confirmation matches</li>
+          </ul>
+        </div>
+      </div>
+      <div class="row">
+        <button id="set" class="btn" disabled>Set device secret</button>
+      </div>
+    </div>
+
+  <!-- Force replace removed: secret is generated only once to avoid accidental credential loss -->
+
+    <div id="manageArea" style="display:none">
+      <div class="row">
+        <label>Passphrase (enter to Unlock)</label>
+        <input id="passphraseUnlock" type="password" placeholder="Enter passphrase to unlock" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #ddd;border-radius:6px;margin-top:6px" />
+      </div>
+      <div class="row">
+        <button id="unlock" class="btn ghost">Unlock</button>
+        <button id="lock" class="btn ghost">Lock</button>
+        <button id="toggleChange" class="btn ghost" style="margin-left:6px">Change</button>
+      </div>
+    </div>
+
+    <div id="changeSection" class="row" style="display:none; margin-top:10px; padding:10px; border:1px solid #eee; background:#fff; border-radius:8px">
+      <div style="margin-bottom:6px" class="muted">Change passphrase (only when needed). Provide current passphrase below if required.</div>
+      <label>Current passphrase (optional if unlocked)</label>
+      <input id="currentPassphrase" type="password" placeholder="Current passphrase" />
+      <label style="margin-top:6px">New passphrase</label>
+      <input id="newPassphrase" type="password" placeholder="New passphrase" />
+      <div style="margin-top:8px">
+        <button id="change" class="btn">Apply change</button>
+      </div>
+    </div>
+
+    <div id="status" class="row">Status: <span class="badge" id="statusBadge">unknown</span></div>
+  <div id="statusAlert" style="margin-top:8px;display:none;padding:8px;border-radius:6px;font-size:13px"></div>
+  </div>
+
+  <hr />
+  <div id="backupCard" class="card" style="margin-top:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <strong>Backup</strong>
+        <div class="muted">Use an encrypted package to migrate device secret and credentials.</div>
+      </div>
+    </div>
+    <div class="row">
+  <button id="exportAll" class="btn">Create encrypted backup</button>
+  <button id="importAll" class="btn ghost">Restore encrypted backup</button>
+    </div>
+    <div id="backupLog" class="muted" style="margin-top:8px;font-size:12px"></div>
+
+  </div>
+
+  <!-- Export view: shown as separate internal popup 'screen' -->
+  <div id="exportView" class="card inactive" style="margin-top:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center">
+        <button id="exportBack" class="btn ghost" style="margin-right:8px">Back</button>
+        <strong>Export</strong>
+      </div>
+      <div class="muted">Encrypted package</div>
+    </div>
+    <div style="margin-top:8px" id="exportInner">
+      <div id="exportControls" style="margin-top:8px">
+        <div class="tipBox" role="note" aria-live="polite">
+          <span aria-hidden="true" style="font-size:16px;line-height:1">🔐</span>
+          <div><strong>Security tip:</strong> Keep the encrypted backup and its passphrase in a trusted location. Anyone with both can restore your credentials.</div>
+        </div>
+        <label style="display:block;margin-top:8px">Export passphrase</label>
+        <input id="exportPass" type="password" placeholder="Enter export passphrase" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px" />
+        <label style="display:block;margin-top:8px">Confirm passphrase</label>
+        <input id="exportPassConfirm" type="password" placeholder="Confirm export passphrase" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px" />
+        <div id="strengthBar" style="height:8px;border-radius:6px;margin-top:6px;background:#eee;overflow:hidden">
+          <div id="strengthFill" style="height:100%;width:0%;background:linear-gradient(90deg,#f43f5e,#fb923c,#10b981);transition:width 120ms ease"></div>
+        </div>
+        <div id="exportHint" class="muted" style="margin-top:6px;font-size:12px">Password requirements: at least 12 characters and must include lowercase, uppercase, digits, and symbols.</div>
+        <div id="exportReqs" style="margin-top:8px;font-size:13px">
+          <div class="muted">Requirements:</div>
+          <ul style="list-style:none;padding:6px 10px;margin:6px 0">
+            <li class="reqItem" id="reqLen" style="display:flex;align-items:center;margin:4px 0"><span class="reqIcon" id="reqIconLen" style="width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-right:8px;background:#efefef;color:#777;font-weight:700">•</span>At least 12 characters</li>
+            <li class="reqItem" id="reqLower" style="display:flex;align-items:center;margin:4px 0"><span class="reqIcon" id="reqIconLower" style="width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-right:8px;background:#efefef;color:#777;font-weight:700">•</span>Contains lowercase (a-z)</li>
+            <li class="reqItem" id="reqUpper" style="display:flex;align-items:center;margin:4px 0"><span class="reqIcon" id="reqIconUpper" style="width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-right:8px;background:#efefef;color:#777;font-weight:700">•</span>Contains uppercase (A-Z)</li>
+            <li class="reqItem" id="reqDigit" style="display:flex;align-items:center;margin:4px 0"><span class="reqIcon" id="reqIconDigit" style="width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-right:8px;background:#efefef;color:#777;font-weight:700">•</span>Contains digits (0-9)</li>
+            <li class="reqItem" id="reqSymbol" style="display:flex;align-items:center;margin:4px 0"><span class="reqIcon" id="reqIconSymbol" style="width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-right:8px;background:#efefef;color:#777;font-weight:700">•</span>Contains symbol (e.g. !@#$%)</li>
+            <li class="reqItem" id="reqConfirm" style="display:flex;align-items:center;margin:4px 0"><span class="reqIcon" id="reqIconConfirm" style="width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-right:8px;background:#efefef;color:#777;font-weight:700">•</span>Confirmation matches</li>
+          </ul>
+        </div>
+        <div id="exportDoWrap" style="display:flex;justify-content:flex-end;margin-top:6px">
+          <button id="exportDo" class="btn ghost" disabled>Export now</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>

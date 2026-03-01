@@ -1,0 +1,52 @@
+{
+
+    "name": "FeIDo Extension",
+    "description": "FeIDo browser extension for middleware interaction",
+    "version": "1.0",
+    "manifest_version": 2,
+  
+    "browser_specific_settings": {
+      "gecko": {
+        "id": "feido.extension@cispa.de",
+        "strict_min_version": "50.0"
+      }
+    },
+    "permissions": [
+      "storage",
+      "tabs",
+      "notifications",
+      "downloads",
+      "https://verifier.eudiw.dev/*"
+    ],
+
+    "content_scripts": [
+      {
+        "matches": ["*://*/*"],
+        "js": ["overwrite.js"],
+        "run_at": "document_start"
+      },
+      {
+        "matches": ["https://verifier.eudiw.dev/*"],
+        "js": ["pid_scraper.js"],
+        "run_at": "document_idle"
+      }
+    ],
+
+    "background": {
+      "scripts": [
+                  "metrics.js",
+                  "background.js",
+                  "publicKeyCredentialOverwrite.js",
+                  "protobuf.min.js",
+                  "protoBuilder.js"
+      ]
+    },
+
+    "browser_action": {
+      "default_title": "FeIDo",
+      "default_popup": "popup.html"
+    },
+
+    "content_security_policy": "script-src 'self' 'unsafe-eval' ; object-src 'self';"
+  
+  }

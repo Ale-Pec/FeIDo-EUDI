@@ -1,0 +1,189 @@
+{
+  "nested": {
+    "de": {
+      "nested": {
+        "cispa": {
+          "nested": {
+            "feido": {
+              "nested": {
+                "PublicKeyCredentialRpEntity": {
+                  "fields": {
+                    "id": {
+                      "type": "string",
+                      "id": 1
+                    }
+                  }
+                },
+                "PublicKeyCredentialUserEntity": {
+                  "fields": {
+                    "id": {
+                      "type": "bytes",
+                      "id": 1
+                    },
+                    "displayName": {
+                      "type": "string",
+                      "id": 2
+                    }
+                  }
+                },
+                "PublicKeyCredentialParameters": {
+                  "fields": {
+                    "type": {
+                      "type": "string",
+                      "id": 1
+                    },
+                    "alg": {
+                      "type": "int32",
+                      "id": 2
+                    }
+                  }
+                },
+                "PublicKeyCredentialCreationOptions": {
+                  "fields": {
+                    "origin": {
+                      "type": "string",
+                      "id": 1
+                    },
+                    "challenge": {
+                      "type": "bytes",
+                      "id": 2
+                    },
+                    "rp": {
+                      "type": "PublicKeyCredentialRpEntity",
+                      "id": 3
+                    },
+                    "user": {
+                      "type": "PublicKeyCredentialUserEntity",
+                      "id": 4
+                    },
+                    "pubKeyCredParams": {
+                      "type": "PublicKeyCredentialParameters",
+                      "id": 5
+                    }
+                  }
+                },
+                "PublicKeyCredentialRequestOptions": {
+                  "fields": {
+                    "origin": {
+                      "type": "string",
+                      "id": 1
+                    },
+                    "rpId": {
+                      "type": "string",
+                      "id": 2
+                    },
+                    "challenge": {
+                      "type": "bytes",
+                      "id": 3
+                    }
+                  }
+                },
+                "AuthenticatorAttestationResponse": {
+                  "fields": {
+                    "clientDataJSON": {
+                      "type": "bytes",
+                      "id": 1
+                    },
+                    "attestationObject": {
+                      "type": "bytes",
+                      "id": 2
+                    }
+                  }
+                },
+                "AuthenticatorAttachment": {
+                  "fields": {
+                    "type": {
+                      "type": "string",
+                      "id": 1
+                    }
+                  }
+                },
+                "AuthenticatorAssertionResponse": {
+                  "fields": {
+                    "clientDataJSON": {
+                      "type": "bytes",
+                      "id": 1
+                    },
+                    "authenticatorData": {
+                      "type": "bytes",
+                      "id": 2
+                    },
+                    "signature": {
+                      "type": "bytes",
+                      "id": 3
+                    },
+                    "userHandle": {
+                      "type": "bytes",
+                      "id": 4
+                    }
+                  }
+                },
+                "AuthenticatorResponse": {
+                  "oneofs": {
+                    "responseType": {
+                      "oneof": [
+                        "authenticatorAttestationResponse",
+                        "authenticatorAssertionResponse"
+                      ]
+                    }
+                  },
+                  "fields": {
+                    "authenticatorAttestationResponse": {
+                      "type": "AuthenticatorAttestationResponse",
+                      "id": 1
+                    },
+                    "authenticatorAssertionResponse": {
+                      "type": "AuthenticatorAssertionResponse",
+                      "id": 2
+                    }
+                  }
+                },
+                "PublicKeyCredential": {
+                  "fields": {
+                    "rawId": {
+                      "type": "bytes",
+                      "id": 1
+                    },
+                    "response": {
+                      "type": "AuthenticatorResponse",
+                      "id": 2
+                    },
+                    "authenticatorAttachment": {
+                      "type": "AuthenticatorAttachment",
+                      "id": 3
+                    }
+                  }
+                },
+                "FEIDOWrapper": {
+                  "oneofs": {
+                    "packet": {
+                      "oneof": [
+                        "publicKeyCredentialCreationOptions",
+                        "publicKeyCredentialRequestOptions",
+                        "publicKeyCredential"
+                      ]
+                    }
+                  },
+                  "fields": {
+                    "publicKeyCredentialCreationOptions": {
+                      "type": "PublicKeyCredentialCreationOptions",
+                      "id": 1
+                    },
+                    "publicKeyCredentialRequestOptions": {
+                      "type": "PublicKeyCredentialRequestOptions",
+                      "id": 2
+                    },
+                    "publicKeyCredential": {
+                      "type": "PublicKeyCredential",
+                      "id": 3
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
