@@ -2,7 +2,7 @@
 
 **This repository contains the code developed for my Master's Thesis.**
 
-The project extends and is based on the original **FeIDo: Recoverable FIDO2 Tokens Using Electronic IDs** research project, whose details and original documentation are provided below.
+The project extends and is based on the original [**FeIDo: Recoverable FIDO2 Tokens Using Electronic IDs**](https://github.com/feido-token) research project, whose details and original documentation are provided below.
 
 ---
 
